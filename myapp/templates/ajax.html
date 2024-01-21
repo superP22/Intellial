@@ -1,0 +1,108 @@
+<script>
+    $("#btnsave").click(function(){
+        console.log("Save button clicked");
+        output = "";
+        let nm = $("#nameid").val();
+        let sm= $("#semid").val();
+        let br = $("#branchid").val();
+        let csr = $("input[name='csrfmiddlewaretoken']").val();
+
+        if(nm == ""){
+            console.log("Please enter Name");
+        }
+        else if(sm == ""){
+            console.log("Please enter Sem");
+        }
+        else if(br == ""){
+            console.log("Please enter Branch");
+        }
+
+        else{
+           // console.log(nm);
+           // console.log(sm);
+           // console.log(br);
+
+           $.ajax({
+            url: "{% url 'save' %}",
+            method : "POST",
+            data : {name:nm, sem:sm, branch:br ,csrfmiddlewaretoken:csr},
+            success:function(data){
+                //console.log(data);
+
+                x = data.stud_data;
+                if(data.status == 'Save'){
+                    console.log("Form success");
+                    for(i=0; i<x.length; i++){
+                        output += "<tr><td>" + x[i].id +
+                        "</td><td>" + x[i].name +
+                        "</td><td>" + x[i].sem +
+                        "</td><td>" + x[i].branch +
+                        "</td> <td> <input type='button' value='Edit' class='btn btn-warning btn-sm btn-edit' data-sid=" +
+                         x[i].id + "> <input type='button' value='Delete' class='btn btn-danger btn-sm btn-del'  data-sid=" +
+                         x[i].id + ">" ;
+                            
+                    }
+                    $("tbody").html(output);
+                    $('form')[0].reset();
+                }
+                if(data.status == 0){
+                    console.log("Unable to save form");
+                }
+            }
+           });
+        }
+
+    });
+
+    // delete data
+
+    $("tbody").on("click", ".btn-del", function(){
+       console.log("delete button pressed");
+        let id = $(this).attr("data-sid");
+       let csr = $("input[name=csrfmiddlewaretoken").val();
+
+      // console.log(id);
+        mythis = this
+      $.ajax({
+        url: "{% url 'delete' %}",
+        method : 'POST',
+        data : {sid:id, csrfmiddlewaretoken:csr},
+        success:function(data){
+            //console.log(data);
+
+            if(data.status == 1){
+                console.log("data deleted success");
+                $(mythis).closest("tr").fadeOut();
+            }
+
+            if(data.status == 0){
+                console.log("Unable to delete data");
+            }
+        }
+      });
+    });
+
+    //edit data
+
+
+    $("tbody").on("click", ".btn-edit", function(){
+        let id = $(this).attr("data-sid");
+       let csr = $("input[name=csrfmiddlewaretoken").val();
+
+      //console.log(id);
+      $.ajax({
+        url: "{% url 'edit' %}",
+        method : 'POST',
+        data : {sid:id, csrfmiddlewaretoken:csr},
+        success:function(data){
+            //console.log(data);
+
+            $("#nameid").val(data.name);
+            $("#semid").val(data.sem);
+            $("#branchid").val(data.branch);
+          
+        }
+      });
+    });
+
+</script>
